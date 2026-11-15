@@ -12,8 +12,8 @@ import {requireAdmin,requireSuperAdmin,setLoginCookie,clearLoginCookie,csrfCheck
 const router=Router();
 const loginLimit=rateLimit({windowMs:15*60*1000,limit:10,standardHeaders:'draft-7',legacyHeaders:false,message:{error:'Too many login attempts. Try again shortly.'}});
 const uploadDir=process.env.UPLOAD_DIR ? path.resolve(process.env.UPLOAD_DIR) : path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../uploads');
-const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:1},fileFilter(req,file,cb){
-  if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.mimetype)) return cb(httpError(400,'Upload JPG, PNG, WebP or GIF images only'));
+const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:80*1024*1024,files:1},fileFilter(req,file,cb){
+  if(!['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','audio/mpeg','audio/mp4','audio/wav','audio/ogg','audio/webm'].includes(file.mimetype)) return cb(httpError(400,'Unsupported media type. Upload JPG, PNG, WebP, GIF, MP4, WebM, MP3, WAV or OGG'));
   cb(null,true);
 }});
 
@@ -154,14 +154,21 @@ router.get('/audit',requireSuperAdmin,asyncRoute(async(req,res)=>res.json(await 
 
 router.get('/media',asyncRoute(async(req,res)=>res.json(await query('SELECT m.*,u.name AS uploader FROM media m LEFT JOIN admin_users u ON u.id=m.uploaded_by ORDER BY m.id DESC LIMIT 1000'))));
 router.post('/media',upload.single('file'),asyncRoute(async(req,res)=>{
-  const f=req.file;if(!f) throw httpError(400,'Select an image');
+  const f=req.file;if(!f) throw httpError(400,'Select a media file');
   let ext=null;
   if(f.buffer.subarray(0,3).equals(Buffer.from([0xff,0xd8,0xff]))) ext='jpg';
   else if(f.buffer.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) ext='png';
   else if(f.buffer.subarray(0,4).toString()==='RIFF'&&f.buffer.subarray(8,12).toString()==='WEBP') ext='webp';
   else if(['GIF87a','GIF89a'].includes(f.buffer.subarray(0,6).toString())) ext='gif';
-  const expected={jpg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif'};
-  if(!ext || expected[ext]!==f.mimetype) throw httpError(400,'Image file signature does not match its type');
+  else if(f.buffer.subarray(4,8).toString()==='ftyp' && f.mimetype==='video/mp4') ext='mp4';
+  else if(f.buffer.subarray(4,8).toString()==='ftyp' && f.mimetype==='audio/mp4') ext='m4a';
+  else if(f.buffer.subarray(0,4).equals(Buffer.from([0x1a,0x45,0xdf,0xa3])) && f.mimetype==='video/webm') ext='webm';
+  else if(f.buffer.subarray(0,4).equals(Buffer.from([0x1a,0x45,0xdf,0xa3])) && f.mimetype==='audio/webm') ext='weba';
+  else if((f.buffer.subarray(0,3).toString()==='ID3'||(f.buffer[0]===0xff && (f.buffer[1]&0xe0)===0xe0)) && f.mimetype==='audio/mpeg') ext='mp3';
+  else if(f.buffer.subarray(0,4).toString()==='RIFF'&&f.buffer.subarray(8,12).toString()==='WAVE'&&f.mimetype==='audio/wav') ext='wav';
+  else if(f.buffer.subarray(0,4).toString()==='OggS'&&f.mimetype==='audio/ogg') ext='ogg';
+  const expected={jpg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',mp4:'video/mp4',webm:'video/webm',m4a:'audio/mp4',weba:'audio/webm',mp3:'audio/mpeg',wav:'audio/wav',ogg:'audio/ogg'};
+  if(!ext || expected[ext]!==f.mimetype) throw httpError(400,'Media file signature does not match its type');
   const filename=`${randomUUID()}.${ext}`;await fs.mkdir(uploadDir,{recursive:true});await fs.writeFile(path.join(uploadDir,filename),f.buffer,{flag:'wx'});
   const mediaPath=`/uploads/${filename}`;
   const result=await query('INSERT INTO media (path,filename,mime,bytes,alt,uploaded_by) VALUES (?,?,?,?,?,?)',[mediaPath,onlyString(f.originalname,255),f.mimetype,f.size,onlyString(req.body?.alt,300),req.user.id]);
@@ -171,7 +178,7 @@ router.post('/media',upload.single('file'),asyncRoute(async(req,res)=>{
 router.delete('/media/:id',asyncRoute(async(req,res)=>{
   const [item]=await query('SELECT * FROM media WHERE id=?',[req.params.id]);if(!item) throw httpError(404,'Image not found');
   await query('DELETE FROM media WHERE id=?',[item.id]);
-  if(/^\/uploads\/[\da-f-]+\.(jpg|png|webp|gif)$/.test(item.path)) await fs.unlink(path.join(uploadDir,path.basename(item.path))).catch(()=>{});
+  if(/^\/uploads\/[\da-f-]+\.(jpg|png|webp|gif|mp4|webm|m4a|weba|mp3|wav|ogg)$/.test(item.path)) await fs.unlink(path.join(uploadDir,path.basename(item.path))).catch(()=>{});
   await logAction(req.user.id,'delete','media',item.id);res.json({success:true});
 }));
 

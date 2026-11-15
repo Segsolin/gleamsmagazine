@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "db:setup": "node scripts/setup-db.js",
     "admin:create": "node scripts/create-admin.js",
-    "doctor": "node scripts/doctor.js"
+    "doctor": "node scripts/doctor.js",
+    "design:seed": "node scripts/seed-reference-design.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

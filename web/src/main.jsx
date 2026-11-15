@@ -2,10 +2,11 @@ import React,{createContext,useContext,useEffect,useState} from 'react';
 import{createRoot}from'react-dom/client';
 import{BrowserRouter,Routes,Route,useLocation}from'react-router-dom';
 import{api}from'./api';
-import{PublicShell,PageView,StoriesView,StoryView,NotFound}from'./components/Public';
+import GleamsPublic from './components/GleamsPublic';
 import AdminApp from './admin/AdminApp';
 import './styles.css';
 import './admin/admin.css';
+import './components/gleams.css';
 
 const SiteContext=createContext({settings:{},navigation:[]});
 export const useSite=()=>useContext(SiteContext);
@@ -14,13 +15,7 @@ function SiteProvider({children}){
  useEffect(()=>{api('/site').then(setData).catch(console.error)},[]);
  return <SiteContext.Provider value={data}>{children}</SiteContext.Provider>;
 }
-function PublicRoutes(){return <PublicShell><Routes>
- <Route path="/" element={<PageView slug="home"/>}/>
- <Route path="/stories" element={<StoriesView/>}/>
- <Route path="/stories/:slug" element={<StoryView/>}/>
- <Route path="/:slug" element={<PageView/>}/>
- <Route path="*" element={<NotFound/>}/>
- </Routes></PublicShell>}
+function PublicRoutes(){const {pathname}=useLocation();const m=pathname.match(/^\/stories\/([^/]+)$/);return m?<GleamsPublic post/>:<GleamsPublic pageSlug={pathname==='/'?'home':pathname==='/stories'?'magazine':pathname.slice(1).split('/')[0]}/>}
 function Root(){
  const {pathname}=useLocation();
  // Render the public/admin route trees directly instead of inside a splat route.

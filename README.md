@@ -1,6 +1,30 @@
+# GLEAMS — Reference-led React + Vite / Node.js CMS rebuild
+
+**Updated after reviewing the supplied 4-minute GLEAMS UI preview.** The public website has been redesigned around its visible charcoal/gold + ivory editorial system, responsive header, ecosystem cards, magazine, Awards, Studios, Conversations and First Sound experiences. The admin CMS remains connected to MySQL for editable pages, posts, media and collections.
+
+**Start with [REFERENCE_REBUILD.md](REFERENCE_REBUILD.md).** That document explains precisely what was observed, what is editable, what original media is still needed, and how to run the optional `npm run design:seed` migration safely. The old instructions below describe the original package and may refer to the superseded public UI.
+
+**Quick Windows setup:** `npm install` → configure `server/.env` → `npm run db:setup` → `npm run design:seed` → `npm run admin:create` (first installation only) → `npm run dev`.
+
+**Important:** The redesign is reconstructed from the user's recording. It cannot be called a verified exact copy of the live website because the original fonts, source imagery, video/audio URLs and full page markup were not available. A complete live production build / visual comparison has not been executed in this environment.
+
+---
+
 # GLEAMS WORLD — Website + CMS
 
 A full-stack content-managed website starter for GLEAMS, built with **React + Vite** (public website and CMS interface), **Node.js + Express** (REST API), and **MySQL**. All editable website content is stored in MySQL rather than hardcoded into React.
+
+## Frontend crash + routing fix (15 November 2026)
+
+This updated archive fixes the reported `ScrollToTop` React error (`destroy is not a function`). The `useEffect` in `web/src/components/Public.jsx` now uses braces, so the result of `window.scrollTo()` is **not** accidentally returned as an effect cleanup function.
+
+React Router v6's `v7_startTransition` and `v7_relativeSplatPath` future flags are explicitly enabled in `web/src/main.jsx`. To preserve nested public/admin route matching under those flags, `Root` selects the public or admin route tree directly and the admin routes in `web/src/admin/AdminApp.jsx` use full `/admin/...` paths. The public router continues to handle `/` and public pages normally.
+
+`web/public/favicon.svg` and `web/public/favicon.ico` are included; `web/index.html` links the SVG icon. The `.ico` file also supports browsers that request `/favicon.ico` directly. You can replace these with your approved GLEAMS brand icon.
+
+If updating an **existing** checkout instead of using the full ZIP, overwrite these files from the included hotfix archive: `web/src/components/Public.jsx`, `web/src/main.jsx`, `web/src/admin/AdminApp.jsx`, `web/index.html`, and both `web/public/favicon` files. Then restart your development server (`npm run dev`) and hard-refresh the browser. **No database migration is required** for this frontend-only fix.
+
+The fix was verified with source syntax and structural checks, but browser-level functional tests still require dependencies, a running Node server, and a configured MySQL connection.
 
 ## What's included
 

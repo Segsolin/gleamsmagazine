@@ -9,7 +9,8 @@
     "start": "npm run start --prefix server",
     "db:setup": "npm run db:setup --prefix server",
     "admin:create": "npm run admin:create --prefix server",
-    "doctor": "npm run doctor --prefix server"
+    "doctor": "npm run doctor --prefix server",
+    "design:seed": "npm run design:seed --prefix server"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
