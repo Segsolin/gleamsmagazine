@@ -1,0 +1,20 @@
+{
+  "name": "gleams-cms",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "npm install --prefix server && npm install --prefix web",
+    "dev": "concurrently -k -n API,WEB -c cyan,magenta \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
+    "build": "npm run build --prefix web",
+    "start": "npm run start --prefix server",
+    "db:setup": "npm run db:setup --prefix server",
+    "admin:create": "npm run admin:create --prefix server",
+    "doctor": "npm run doctor --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
