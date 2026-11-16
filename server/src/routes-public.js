@@ -47,6 +47,28 @@ router.post('/contact',formLimit,asyncRoute(async(req,res)=>{
   if(name.length<2 || !validEmail(email) || message.length<10) throw httpError(400,'Enter your name, a valid email, and a message of at least 10 characters');
   await query('INSERT INTO contact_messages (full_name,email,subject,message) VALUES (?,?,?,?)',[name,email,subject,message]);res.status(201).json({success:true});
 }));
+router.post('/submissions',formLimit,asyncRoute(async(req,res)=>{
+  if(req.body?.website) return res.status(201).json({success:true});
+  const formKey=onlyString(req.body?.form_key,120).toLowerCase().replace(/[^a-z0-9_-]/g,'');
+  if(!formKey || formKey.length<3) throw httpError(400,'Invalid submission form');
+  const raw=req.body?.fields;
+  if(!raw || Array.isArray(raw) || typeof raw!=='object') throw httpError(400,'Please complete the submission fields');
+  const keys=Object.keys(raw);
+  if(keys.length===0 || keys.length>35) throw httpError(400,'Invalid number of fields');
+  const cleaned={};
+  for(const key of keys){
+    if(!/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(key)) throw httpError(400,'Invalid form field');
+    if(typeof raw[key]!=='string' && typeof raw[key]!=='number')throw httpError(400,'Invalid field value');
+    cleaned[key]=onlyString(String(raw[key]),3000);
+  }
+  const encoded=JSON.stringify(cleaned);
+  if(encoded.length>16000) throw httpError(400,'Submission is too long');
+  const senderName=onlyString(cleaned.full_name||cleaned.name||cleaned.organization||'',180);
+  const senderEmail=cleanEmail(cleaned.email||'');
+  if(senderEmail && !validEmail(senderEmail)) throw httpError(400,'Invalid email address');
+  await query('INSERT INTO form_submissions (form_key,sender_name,sender_email,submission_json) VALUES (?,?,?,?)',[formKey,senderName||null,senderEmail||null,encoded]);
+  res.status(201).json({success:true});
+}));
 router.post('/subscribe',formLimit,asyncRoute(async(req,res)=>{
   if(req.body?.website) return res.json({success:true});
   const email=cleanEmail(req.body?.email);if(!validEmail(email)) throw httpError(400,'Enter a valid email address');

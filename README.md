@@ -1,3 +1,9 @@
+# Updated visual implementation
+
+**Read [`VISUAL_AUDIT_V2.md`](VISUAL_AUDIT_V2.md) first.** It documents the current user-supplied screenshot and video comparison, new CMS section types, `reference_design_seeded_v2` migration behavior, and Form submissions inbox. Some older details lower in this README describe the original scaffold.
+
+---
+
 # GLEAMS — Reference-led React + Vite / Node.js CMS rebuild
 
 **Updated after reviewing the supplied 4-minute GLEAMS UI preview.** The public website has been redesigned around its visible charcoal/gold + ivory editorial system, responsive header, ecosystem cards, magazine, Awards, Studios, Conversations and First Sound experiences. The admin CMS remains connected to MySQL for editable pages, posts, media and collections.

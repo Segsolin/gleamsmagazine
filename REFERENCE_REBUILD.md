@@ -1,3 +1,9 @@
+# This guide is superseded by VISUAL_AUDIT_V2.md
+
+This is the earlier video-only rebuild guide and may describe older section types and submission handling. Refer to [`VISUAL_AUDIT_V2.md`](VISUAL_AUDIT_V2.md) for the eight-screenshot + video update, form inbox, and v2 migration instructions.
+
+---
+
 # GLEAMS visual reference rebuild — November 2026
 
 ## What was inspected

@@ -144,6 +144,12 @@ router.patch('/messages/:id',asyncRoute(async(req,res)=>{
   await query('UPDATE contact_messages SET status=? WHERE id=?',[req.body.status,req.params.id]);
   await logAction(req.user.id,'update','contact_message',req.params.id);res.json({success:true});
 }));
+router.get('/submissions',asyncRoute(async(req,res)=>res.json(await query('SELECT * FROM form_submissions ORDER BY created_at DESC LIMIT 1000'))));
+router.patch('/submissions/:id',asyncRoute(async(req,res)=>{
+  if(!['new','in_review','resolved'].includes(req.body?.status)) throw httpError(400,'Invalid submission status');
+  await query('UPDATE form_submissions SET status=? WHERE id=?',[req.body.status,req.params.id]);
+  res.json({success:true});
+}));
 router.get('/subscribers',asyncRoute(async(req,res)=>res.json(await query('SELECT * FROM subscribers ORDER BY created_at DESC LIMIT 10000'))));
 router.delete('/subscribers/:id',asyncRoute(async(req,res)=>{
   const r=await query('DELETE FROM subscribers WHERE id=?',[req.params.id]);

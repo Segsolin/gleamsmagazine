@@ -7,12 +7,13 @@ import AdminApp from './admin/AdminApp';
 import './styles.css';
 import './admin/admin.css';
 import './components/gleams.css';
+import './components/gleams-fidelity.css';
 
 const SiteContext=createContext({settings:{},navigation:[]});
 export const useSite=()=>useContext(SiteContext);
 function SiteProvider({children}){
- const [data,setData]=useState({settings:{},navigation:[]});
- useEffect(()=>{api('/site').then(setData).catch(console.error)},[]);
+ const [data,setData]=useState({settings:{},navigation:[],loaded:false});
+ useEffect(()=>{api('/site').then(d=>setData({...d,loaded:true})).catch(console.error)},[]);
  return <SiteContext.Provider value={data}>{children}</SiteContext.Provider>;
 }
 function PublicRoutes(){const {pathname}=useLocation();const m=pathname.match(/^\/stories\/([^/]+)$/);return m?<GleamsPublic post/>:<GleamsPublic pageSlug={pathname==='/'?'home':pathname==='/stories'?'magazine':pathname.slice(1).split('/')[0]}/>}

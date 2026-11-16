@@ -154,3 +154,17 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   INDEX idx_logs_created (created_at),
   CONSTRAINT fk_audit_actor FOREIGN KEY (actor_id) REFERENCES admin_users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Flexible forms for Awards nominations, Foundation enquiries, and First Sound
+-- submissions. Field definitions are maintained per CMS page section.
+CREATE TABLE IF NOT EXISTS form_submissions (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  form_key VARCHAR(120) NOT NULL,
+  sender_name VARCHAR(180) NULL,
+  sender_email VARCHAR(254) NULL,
+  submission_json JSON NOT NULL,
+  status ENUM('new','in_review','resolved') NOT NULL DEFAULT 'new',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_form_submissions_status (status,created_at),
+  INDEX idx_form_submissions_form (form_key,created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
